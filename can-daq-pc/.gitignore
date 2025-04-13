@@ -1,0 +1,12 @@
+__pycache__
+.venv
+**.db
+**.db-journal
+**.csv
+.python-version
+*.log
+*.dbc
+*.json
+build
+bin
+dist

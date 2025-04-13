@@ -1,0 +1,5 @@
+../Core/Src/main.c:20:6:configure_LEDs	4	static
+../Core/Src/main.c:34:6:delay_microseconds	16	static
+../Core/Src/main.c:48:6:configure_CAN	4	static
+../Core/Src/main.c:95:6:CAN_Tx	16	static
+../Core/Src/main.c:111:5:main	56	static

@@ -1,0 +1,6 @@
+cantools
+matplotlib
+pyserial
+customtkinter
+numpy
+tkcalendar

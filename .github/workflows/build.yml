@@ -1,0 +1,134 @@
+name: Test, build and release
+
+on:
+  # run on push to main
+  push:
+    tags: 
+      - 'v*'
+
+jobs:
+
+  # build executable for linux
+  build-linux:
+    name: build for linux
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: can-daq-pc
+
+
+    steps:
+
+      # setup
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - run: |
+          pip install pyinstaller
+          mkdir dist ~/dist build
+
+      # build
+      - run: |
+          pip install -r requirements.txt
+          pyinstaller can-daq.spec
+          mv dist/can-daq ~/dist/can-daq-linux-x64
+          pwd
+          ls dist -al
+
+      # upload artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          path: ~/dist
+          name: can-daq-linux-x64
+
+  # build executable for windows
+  build-windows:
+    name: build for windows
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        working-directory: can-daq-pc
+
+    steps:
+
+      # setup
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - run: |
+          pip install pyinstaller
+          mkdir dist
+          mkdir ~\dist
+          mkdir build
+
+      # build
+      - run: |
+          pip install -r requirements.txt
+          pyinstaller can-daq.spec
+          mv dist/can-daq.exe ~\dist/can-daq-windows-x64.exe
+
+      # upload artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          path: ~\dist
+          name: can-daq-windows-x64
+
+  # build executable for macos
+  build-macos:
+    name: build for macos
+    runs-on: macos-latest
+
+    defaults:
+      run:
+        working-directory: can-daq-pc
+
+    steps:
+
+      # setup
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - run: |
+          pip install pyinstaller
+          mkdir dist ~/dist build
+
+      # build
+      - run: |
+          pip install -r requirements.txt
+          pyinstaller can-daq.spec
+          mv dist/can-daq ~/dist/can-daq-macos-x64
+
+      # upload artifacts
+      - uses: actions/upload-artifact@v4
+        with:
+          path: ~/dist
+          name: can-daq-macos-x64
+
+  # create release from tag
+  release:
+
+    # ensure that build is complete for all platforms
+    needs:
+      - build-linux
+      - build-macos
+      - build-windows
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+
+    # download the artifacts
+    - run: mkdir dist
+    - uses: actions/download-artifact@v4
+      with:
+        path: dist
+
+    # do the release
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "dist/can-daq*/*"
+        token: ${{ secrets.GITHUB_TOKEN }}
+        generateReleaseNotes: true
+        artifactErrorsFailBuild: false
+        prerelease: false

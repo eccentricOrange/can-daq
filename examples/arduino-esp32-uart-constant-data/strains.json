@@ -1,0 +1,54 @@
+[
+    {
+        "name": "Strains",
+        "id": 5,
+        "byte_order": "little",
+        "length": 4,
+        "signals": [
+            {
+                "start_position": 0,
+                "length": 8,
+                "name": "Channel 0",
+                "datatype": "d",
+                "min": -5,
+                "max": 5,
+                "scaling": 1,
+                "offset": 0,
+                "unit": "uStrain"
+            },
+            {
+                "start_position": 8,
+                "length": 8,
+                "name": "Channel 1",
+                "datatype": "d",
+                "min": -5,
+                "max": 5,
+                "scaling": 1,
+                "offset": 0,
+                "unit": "uStrain"
+            },
+            {
+                "start_position": 16,
+                "length": 8,
+                "name": "Channel 2",
+                "datatype": "d",
+                "min": -5,
+                "max": 5,
+                "scaling": 1,
+                "offset": 0,
+                "unit": "uStrain"
+            },
+            {
+                "start_position": 24,
+                "length": 8,
+                "name": "Channel 3",
+                "datatype": "d",
+                "min": -5,
+                "max": 5,
+                "scaling": 1,
+                "offset": 0,
+                "unit": "uStrain"
+            }
+        ]
+    }
+]
