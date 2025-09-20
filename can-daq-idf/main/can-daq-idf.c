@@ -5,6 +5,7 @@
 #include <freertos/FreeRTOS.h>
 #include <stdio.h>
 #include <esp_timer.h>
+#include <bot_speak.h>
 
 #define CAN_RX_PIN 6
 #define CAN_TX_PIN 7
@@ -14,8 +15,7 @@
 
 #define CAN_TIMEOUT_MS 1e3
 
-#define MINIMUM_TRANSMIT_UART_FRAME_SIZE (4 + 1)  // CAN ID + DLC
-#define MAXIMUM_TRANSMIT_UART_FRAME_SIZE (MINIMUM_TRANSMIT_UART_FRAME_SIZE + 8)  // CAN ID + DLC + 8 data bytes
+#define MAXIMUM_TRANSMIT_UART_FRAME_SIZE (BOT_SPEAK_MIN_PACKET_SIZE + 8)  // CAN ID + DLC + 8 data bytes
 #define TRANSMIT_TASK_DELAY_MS 10
 
 
@@ -128,29 +128,23 @@ twai_timing_config_t set_can_data_rate() {
 /// @details If an error occurs while receiving the message, the error code is printed.
 void read_twai_task() {
     twai_message_t message;
+    DataFrame_TypeDef transmit_data_frame;
+    uint8_t packed_frame[MAXIMUM_TRANSMIT_UART_FRAME_SIZE];
+    uint8_t packed_frame_length = 0;
+
     esp_err_t status = twai_receive(&message, pdMS_TO_TICKS(CAN_TIMEOUT_MS));
 
     if (status == ESP_OK) {
         gpio_set_level(STATUS_LED_PIN, true);
 
-        // Capture hardware timestamp immediately after receiving the message.
-        uint64_t hw_timestamp = esp_timer_get_time(); // time in microseconds
+        transmit_data_frame.frameID = message.identifier;
+        transmit_data_frame.timestamp = esp_timer_get_time(); // time in microseconds
+        transmit_data_frame.dataLength = message.data_length_code;
+        transmit_data_frame.data = message.data;
 
-        // Print the identifier (4 bytes, little-endian)
-        for (size_t i = 0; i < 4; i++) {
-            printf("%02X,", (uint8_t)((message.identifier >> (i * 8)) & 0xFF));
-        }
+        botSpeak_packFrame(&transmit_data_frame, packed_frame, &packed_frame_length);
 
-        // Print the data length code
-        printf("%02X,", (uint8_t)message.data_length_code);
-
-        // Print the raw data bytes
-        for (size_t i = 0; i < message.data_length_code; i++) {
-            printf("%02X,", (uint8_t)(message.data[i]));
-        }
-
-        // Append the hardware timestamp (for example, as 64-bit integer in decimal)
-        printf("%llu\n", hw_timestamp);
+        uart_write_bytes(UART_NUM_0, (const char *)packed_frame, packed_frame_length);
 
         gpio_set_level(STATUS_LED_PIN, false);
 
@@ -168,29 +162,23 @@ void transmit_can_messages_task() {
     int length_received = 0;
     char uart_data[MAXIMUM_TRANSMIT_UART_FRAME_SIZE];
     twai_message_t message;
+    DataFrame_TypeDef received_frame;
 
     while (true) {
 
         length_received = uart_read_bytes(UART_NUM_0, uart_data, MAXIMUM_TRANSMIT_UART_FRAME_SIZE, pdMS_TO_TICKS(1000));
 
-        if (length_received >= MINIMUM_TRANSMIT_UART_FRAME_SIZE) {
+        if (length_received >= BOT_SPEAK_MIN_PACKET_SIZE) {
             // turn on the status LED
             gpio_set_level(STATUS_LED_PIN, true);
 
-            message.identifier = 0;
-            message.data_length_code = 0;
+            botSpeak_unpackFrame(&received_frame, (uint8_t*)uart_data, length_received);
 
-            // Parse the identifier
-            for (size_t i = 0; i < 4; i++) {
-                message.identifier |= (uint32_t)uart_data[i] << (i * 8);
-            }
-
-            // Parse the data length code
-            message.data_length_code = uart_data[4];
-
-            // Copy the data bytes
-            for (size_t i = 0; i < message.data_length_code; i++) {
-                message.data[i] = uart_data[i + 5];
+            message.identifier = received_frame.frameID;
+            message.data_length_code = received_frame.dataLength;
+            
+            for (int i = 0; i < message.data_length_code && i < TWAI_FRAME_MAX_DLC; i++) {
+                message.data[i] = received_frame.data[i];
             }
 
             // Transmit the message

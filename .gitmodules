@@ -1,0 +1,4 @@
+[submodule "can-daq-idf/components/BotSpeak"]
+	path = can-daq-idf/components/BotSpeak
+	url = https://github.com/eccentricOrange/BotSpeak
+	branch = espidf
