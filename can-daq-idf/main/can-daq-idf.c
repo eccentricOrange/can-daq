@@ -138,7 +138,7 @@ void read_twai_task() {
         gpio_set_level(STATUS_LED_PIN, true);
 
         transmit_data_frame.frameID = message.identifier;
-        transmit_data_frame.timestamp = esp_timer_get_time(); // time in microseconds
+        transmit_data_frame.timestamp = (uint32_t)(esp_timer_get_time() / 1e3); // time in milliseconds
         transmit_data_frame.dataLength = message.data_length_code;
         transmit_data_frame.data = message.data;
 
