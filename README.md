@@ -93,3 +93,22 @@ We will consider using PyQtGraph and PyQt in the future if we need to increase t
 
 ## Logging database
 We chose to use an [SQLite](https://www.sqlite.org/) database for logging. This allows us to use the [Python standard library](https://docs.python.org/3/library/sqlite3.html) to interact with the database. Moreover, the database exists as a file, which means our users do not need to install a database server.
+
+## Paper
+This work was published in HardwareX, available at [DOI 10.1016/j.ohx.2026.e00743](https://doi.org/10.1016/j.ohx.2026.e00743).
+
+If you use this in your work, please cite our paper:
+```bibtex
+@article{can_daq,
+  title = {CAN-DAQ: An open-source, cost-effective data capture device and software for automotive research},
+  journal = {HardwareX},
+  volume = {25},
+  pages = {e00743},
+  year = {2026},
+  issn = {2468-0672},
+  doi = {https://doi.org/10.1016/j.ohx.2026.e00743},
+  url = {https://www.sciencedirect.com/science/article/pii/S2468067226000039},
+  author = {Anuj Verma and Chandram Millon Dutta and Aritra Ghosh and Sakshin M. Kanchibail and Sneha Harish and Rishvanth S.K. and Shaurya Chandra and Siddharth Das and Selvakumar K.},
+  keywords = {Automotive, Controller Area Network (CAN), Data acquisition (DAQ), CAN database (DBC), Real-time graphing, Database management},
+}
+```
